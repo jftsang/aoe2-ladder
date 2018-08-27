@@ -1,0 +1,46 @@
+html, body {
+    width: 99%;
+    background-color: beige;
+    font-family: "Trebuchet MS", sans-serif;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+table {
+    margin: 0 auto;
+    border-spacing: 0px;
+    text-align: center;
+}
+
+th {
+    border-bottom: 1px black solid;
+    width: 50px;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+}
+
+td {
+    margin: 0px;
+    border-bottom: 1px black solid;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: right;
+    font-size: 11pt;
+}
+
+td.formcell
+{
+ border: none;
+}
+
+a {
+    text-decoration: none;
+}
+
+p,ul{
+    font-size: 11pt;
+    text-align: justify;
+}
