@@ -1,7 +1,10 @@
+<?
+$date = date("Y-m-d");
+?>
 <a id="submit"/>
 <form action="submit.php" method="post">
 <table style="border: none; border-collapse: collapse;">
-  <tr><td class="formcell">Date (yyyy-mm-dd)</td> <td class="formcell"> <input type="text" name="date"/></td></tr>
+<tr><td class="formcell">Date (yyyy-mm-dd)</td> <td class="formcell"> <input type="text" name="date" value="<?=$date?>"/></td></tr>
   <tr><td class="formcell">Winners (comma-separated)</td> <td class="formcell"><input type="text" name="winners"/><td class="formcell"/></tr>
   <tr><td class="formcell">Surrendered (comma-separated)</td> <td class="formcell"><input type="text" name="surrendered"/><td class="formcell"/></tr>
   <tr><td class="formcell">Died (comma-separated)</td> <td class="formcell"><input type="text" name="died"/><td class="formcell"/></tr>
