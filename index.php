@@ -99,15 +99,19 @@ switch ($sortfield)
         });
         break;
     default:
-        //var_dump($sortfield);
+        // echo "<pre>"; var_dump($players); echo "</pre>";
         usort($players, function($p1,$p2) use($sortfield, $order) { 
-            //var_dump($sortfield);
-            //var_dump($p1->$sortfield);
-            //var_dump($p2->$sortfield);
             $ret =  $order*($p2->$sortfield - $p1->$sortfield);
-            // var_dump($ret);
-            return $ret;
-        });
+            /*
+            echo "<pre>";
+            var_dump($sortfield);
+            var_dump($p1->$sortfield);
+            var_dump($p2->$sortfield);
+            var_dump($ret);
+            echo "</pre><br/>";
+             */
+            return $ret > 0 ? 1 : -1;
+        }) or die("Sort failed!");
         break;
 }
 // echo "<pre>"; var_dump($players); echo "</pre>";
