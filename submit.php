@@ -9,7 +9,7 @@ if ($captcha == "michael" || $captcha == "michelle")
     $msg = sprintf(<<<EOF
 Hello,
 
-Someone has submitted a game result to the AoE2 Ladder scoreboard. 
+Someone has submitted a game result to the AoE2 ladder scoreboard. 
 The result was 
 %s
 
@@ -21,7 +21,7 @@ AoE2 Ladder.
 EOF
 , $str, urlencode($str), md5($str."manchuria"));
 
-    mail("jftsang@jftsang.com", "Age of Empires II ladder submission", $msg, "From: aoe2-ladder@jftsang.com");
+    mail("jftsang@jftsang.com", "Age of Empires II ladder submission", $msg, "From: AoE ladder scoreboard <aoe2-ladder@jftsang.com>");
 }
 else
 {
@@ -30,7 +30,10 @@ else
 ?>
 
 <html>
-<head><title>Submission</title></head>
+<head>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <title>Submission</title>
+</head>
 
 <body>
 <?
