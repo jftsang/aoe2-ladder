@@ -23,6 +23,9 @@ class Player {
     public $running;
     public $ladder;
     public $peak;
+
+    public $lastplayed;
+    public $inactivity;
 }
 
 ?>

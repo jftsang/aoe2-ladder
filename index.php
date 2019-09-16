@@ -1,121 +1,4 @@
-<?php
-require_once('classdefs.php');
-$file = fopen('ladder-history', 'r');
-$games = array();
-
-/* Read the games from the ladder history */
-while($str = fgets($file)) {
-    $str = str_replace(' ', '', $str);
-    $game = new Game;
-    sscanf($str, "%04d-%02d-%02d:%s\n", 
-        $year, $month, $day, 
-        $teams
-    );
-    $teams = explode(";",$teams);
-
-    if (strlen($teams[0]) > 0)
-        $game->winners = explode(",", $teams[0]);
-    else 
-        $game->winners = array();
-
-    if (strlen($teams[1]) > 0)
-        $game->surrendered = explode(",", $teams[1]);
-    else 
-        $game->surrendered = array();
-
-    if (strlen($teams[2]) > 0)
-        $game->dead = explode(",", $teams[2]);
-    else 
-        $game->dead = array();
-
-    $game->game_date = sprintf("%04d-%02d-%02d", $year, $month, $day);
-    $games[] = $game;
-}
-
-/* Sort the games by date so that the ladder history is accurate */
-
-/* TODO */
-
-/* Go through each game, go through each team in each game, and add scores to 
- * that player. */
-foreach ($games as $game) {
-    $value = (count($game->surrendered) + count($game->dead)) / count($game->winners);
-    foreach ($game->winners as $playername)
-    {
-        $player = $players[$playername];
-        $player->name = $playername;
-        $player->played++;
-        $player->won++;
-        $player->running += $value;
-        $player->ladder += $value;
-        if($player->ladder > $player->peak)
-            $player->peak = $player->ladder;
-        $players[$playername] = $player;
-    } 
-
-    foreach($game->surrendered as $playername)
-    {
-        $player = $players[$playername];
-        $player->name = $playername;
-        $player->played++;
-        $player->surrendered++;
-        $player->running = $player->running - 1;
-        $player->ladder = max($player->ladder-1, 0);
-        $players[$playername] = $player;
-    }
-
-    foreach($game->dead as $playername)
-    {
-        $player = $players[$playername];
-        $player->name = $playername;
-        $player->played++;
-        $player->died++;
-        $player->running = $player->running - 1;
-        $player->ladder = 0;
-        $players[$playername] = $player;
-    }
-
-
-    $game->value = $value;
-}
-
-foreach ($players as $player)
-{
-    $player->running = floatval($player->running);
-    $player->average = floatval($player->running / $player->played);
-}
-
-/* Sort the games */
-
-$sortfield = isset($_REQUEST['sortby']) 
-    ? $_REQUEST['sortby']
-    : "ladder";
-$order = isset($_REQUEST['order']) ? $_REQUEST['order'] : 1;
-switch ($sortfield)
-{
-    case 'name':
-        usort($players, function($p1,$p2) use($sortfield, $order) {
-            return $order*strcmp($p1->$sortfield, $p2->$sortfield);
-        });
-        break;
-    default:
-        // echo "<pre>"; var_dump($players); echo "</pre>";
-        usort($players, function($p1,$p2) use($sortfield, $order) { 
-            $ret =  $order*($p2->$sortfield - $p1->$sortfield);
-            /*
-            echo "<pre>";
-            var_dump($sortfield);
-            var_dump($p1->$sortfield);
-            var_dump($p2->$sortfield);
-            var_dump($ret);
-            echo "</pre><br/>";
-             */
-            return $ret > 0 ? 1 : -1;
-        }) or die("Sort failed!");
-        break;
-}
-// echo "<pre>"; var_dump($players); echo "</pre>";
-?>
+<?php require_once("loadgames.php"); ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
@@ -145,6 +28,7 @@ unset($players[""]);
   <th><a href="<?=$PHP_SELF?>?sortby=peak">peak</a></th>
   <th><a href="<?=$PHP_SELF?>?sortby=running">running</a></th>
   <th><a href="<?=$PHP_SELF?>?sortby=average">average</a></th>
+  <th><a href="<?=$PHP_SELF?>?sortby=inactivity&order=-1">inactivity</a></th>
 </tr> </thead>
 <tbody>
 <?php
@@ -172,6 +56,8 @@ foreach ($players as $player) {
         $player->running, 
         $player->average
     );
+    printf('<td>%d d</td>', $player->inactivity);
+
     printf("</tr>\n");
 }
 ?>
@@ -233,7 +119,7 @@ foreach (array_reverse(array_slice($games, -$lmh)) as $game) {
 <?php require_once("submitform.php") ?>
 
 <a id="explanation"/>
-<h2>Explanation</h2>
+<h2>Scoring rules</h2>
 
 <p>In a given game, a player may either win, surrender or die. The value of each
 game is equal to the number of surrendered or dead players not counting those on
@@ -248,14 +134,22 @@ the winning team, divided by the number of winners.
   </ul>
 </p>
 
-<p>In a team game, all players on the winning team are counted as winners, even
-if they personally are defeated.</p>
 
+<h3>Notes</h3>
 
-<p><em>Surrendering.</em>
-A player may surrender by resigning while still having a garrisonable castle.
+<ul>
+  <li><em>Team games.</em> In a team game, all players on the winning team are
+counted as winners, even if they personally are defeated.</li>
+  <li><em>Definition of surrendering.</em>
+You can surrender by resigning while still having a garrisonable castle.
 Otherwise, resignation will be counted as a defeat. It's better to surrender if
-you want to keep your position on the ladder.</p>
+you want to keep your position on the ladder.</li>
+  <li><em>AIs.</em> Games involving AIs (no matter how many, or on what teams) get recorded,
+but they don't count towards the ladder score. They affect the running and
+average scores.</li>
+</ul>
+
+<h3>Examples</h3>
 
 <p><em>Example 1.</em> 
 Alice and Bob play on a team against Charlie and David. David surrenders, Bob
@@ -267,8 +161,8 @@ points.</p>
 <p><em>Example 2.</em>
 Alice, Bob and Charlie play on a team against David and Edward. David is
 defeated and Edward surrenders. The value of the game is 2. Alice, Bob and
-Charlie each gain 2/3 of a point. David and Edward each lose 1 point, and David
-loses all his ladder points.
+Charlie each gain 2/3 of a point. David and Edward each lose 1 point.  David
+also loses all his ladder points.
 </p>
 
 </div>
