@@ -3,6 +3,8 @@ require_once('classdefs.php');
 $file = fopen('ladder-history', 'r');
 $games = array();
 
+error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+
 /* Read the games from the ladder history */
 while($str = fgets($file)) {
     $str = str_replace(' ', '', $str);
